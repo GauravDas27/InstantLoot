@@ -1,0 +1,1 @@
+﻿Disable the loot popup window.

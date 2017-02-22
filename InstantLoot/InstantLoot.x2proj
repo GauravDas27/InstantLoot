@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Default" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Guid>869d86ef-f81e-4d5b-bd9d-82f14eb0a00e</Guid>
+    <Name>Instant Loot</Name>
+    <Description>Disable the loot popup window.</Description>
+    <SteamPublishID>0</SteamPublishID>
+    <AssemblyName>InstantLoot</AssemblyName>
+    <RootNamespace>InstantLoot</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+    <Folder Include="Src\" />
+    <Folder Include="Src\InstantLoot\" />
+    <Folder Include="Src\InstantLoot\Classes\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ReadMe.txt" />
+    <Content Include="ModPreview.jpg" />
+    <Content Include="Config\XComEditor.ini" />
+    <Content Include="Config\XComEngine.ini" />
+    <Content Include="Src\InstantLoot\Classes\X2Action_InstantLoot.uc">
+      <SubType>Content</SubType>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
+</Project>
