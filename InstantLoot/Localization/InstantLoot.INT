@@ -1,0 +1,10 @@
+[UIScreenListener_MCM_InstantLoot]
+PageTitle=Instant Loot
+GroupDefaultLabel=Options
+
+DisablePopupLabel=Disable popup
+DisablePopupTooltip=Disable the popup windows that appears when picking up loot
+DisableSoldierAnimationLabel=Disable soldier animation
+DisableSoldierAnumationTooltip=Disable the soldier loot pickup animation
+DisableLootAnimationLabel=Disable loot animation
+DisableLootAnimationTooltip=Disable the loot drops converging to soldier animation
