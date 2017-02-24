@@ -3,6 +3,7 @@ class X2Action_InstantLoot extends X2Action;
 //Cached info for performing the action
 //*************************************
 var CustomAnimParams            Params;
+var bool                        bLootingComplete;
 
 // the socket on the receiving pawn that will accept each loot item
 var Name						LootReceptionSocket;
@@ -23,7 +24,9 @@ var Lootable					NewLootableObjectState;
 var XComGameState_Unit			OldUnitState;
 var AnimNodeSequence			PlayingSequence;
 
-var AkEvent                     LootingSound;
+var bool						DisablePopup;
+var bool						DisableSoldierAnimation;
+var bool						DisableLootAnimation;
 
 //*************************************
 
@@ -63,6 +66,7 @@ function Init(const out VisualizationTrack InTrack)
 	
 	Presentation = `PRES;
 	History = `XCOMHISTORY;
+	bLootingComplete = false;
 
 	UnitState = XComGameState_Unit(InTrack.StateObject_NewState);
 	`assert(UnitState != none);
@@ -107,6 +111,14 @@ function bool IsTimedOut()
 //------------------------------------------------------------------------------------------------
 simulated state Executing
 {
+	function RemoveLoot()
+	{
+		`PRES.Notify(LootVisActorItemPickupStrings[0]);
+		LootVisActors[0].Destroy();
+		LootVisActors.Remove(0, 1);
+		LootVisActorItemPickupStrings.Remove(0, 1);
+	}
+
 	function BeginSlurp()
 	{
 		if( LootVisActors.Length > 0 )
@@ -130,10 +142,7 @@ simulated state Executing
 
 		if( TimeSinceStart >= LootSlurpTime )
 		{
-			`PRES.Notify(LootVisActorItemPickupStrings[0]);
-			LootVisActors[0].Destroy();
-			LootVisActors.Remove(0, 1);
-			LootVisActorItemPickupStrings.Remove(0, 1);
+			RemoveLoot();
 			BeginSlurp();
 		}
 		else
@@ -145,52 +154,86 @@ simulated state Executing
 	}
 
 Begin:
+	DisablePopup = class'Settings'.static.IsPopupDisabled();
+	DisableSoldierAnimation = class'Settings'.static.IsSoldierAnimationDisabled();
+	DisableLootAnimation = class'Settings'.static.IsLootAnimationDisabled();
+
 	// highlight loot sparkles for the old state
 	OldLootableObjectState.UpdateLootSparklesEnabled(true);
 
-	// Start looting anim
-	Params.AnimName = 'HL_LootBodyStart';
-	Params.PlayRate = GetNonCriticalAnimationSpeed();
-	PlayingSequence = UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
-	if( Track.TrackActor.CustomTimeDilation < 1.0 )
+	if (!DisableSoldierAnimation)
 	{
-		Sleep(PlayingSequence.AnimSeq.SequenceLength * PlayingSequence.Rate * Track.TrackActor.CustomTimeDilation);
+		// Start looting anim
+		Params.AnimName = 'HL_LootBodyStart';
+		Params.PlayRate = GetNonCriticalAnimationSpeed();
+		PlayingSequence = UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
+		if( Track.TrackActor.CustomTimeDilation < 1.0 )
+		{
+			Sleep(PlayingSequence.AnimSeq.SequenceLength * PlayingSequence.Rate * Track.TrackActor.CustomTimeDilation);
+		}
+		else
+		{
+			FinishAnim(PlayingSequence);
+		}
+	}
+
+	if (!DisableSoldierAnimation)
+	{
+		// Loop while the UI is displayed
+		Params.AnimName = 'HL_LootLoop';
+		Params.Looping = true;
+		UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
+	}
+
+	if (DisablePopup)
+	{
+		bLootingComplete = true;
+		WorldInfo.PlayAkEvent(AkEvent'SoundTacticalUI.TacticalUI_Looting');
 	}
 	else
 	{
-		FinishAnim(PlayingSequence);
+		// show the UI, and wait for it to finish before playing the slurp
+		`PRES.UIInventoryTactical(OldUnitState, OldLootableObjectState, OnUIInventoryTacticalClosed);
+		while( !bLootingComplete )
+		{
+			Sleep(0.1f);
+		}
 	}
-
-	// Loop while the UI is displayed
-	Params.AnimName = 'HL_LootLoop';
-	Params.Looping = true;
-	UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
-
-	//Sleep(0.1f);
-	WorldInfo.PlayAkEvent(LootingSound);
 
 	// clear loot sparkles based on the new state
 	NewLootableObjectState.UpdateLootSparklesEnabled(false);
 
-
-	BeginSlurp();
-	while( LootVisActors.Length > 0 )
+	if (DisableLootAnimation)
 	{
-		UpdateSlurp();
-		Sleep(0.001f);
+		while( LootVisActors.Length > 0 )
+		{
+			RemoveLoot();
+		}
+	}
+	else 
+	{
+		BeginSlurp();
+		while( LootVisActors.Length > 0 )
+		{
+			UpdateSlurp();
+			Sleep(0.001f);
+		}
 	}
 
-	Params.AnimName = 'HL_LootStop';
-	Params.Looping = false;
-	Params.PlayRate = GetNonCriticalAnimationSpeed();
-	PlayingSequence = UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
-	if( Track.TrackActor.CustomTimeDilation < 1.0 )
+	if (!DisableSoldierAnimation)
 	{
-		Sleep(PlayingSequence.AnimSeq.SequenceLength * PlayingSequence.Rate * Track.TrackActor.CustomTimeDilation);
-	}
-	else
-	{
-		FinishAnim(PlayingSequence);
+		Params.AnimName = 'HL_LootStop';
+		Params.Looping = false;
+		Params.PlayRate = GetNonCriticalAnimationSpeed();
+		PlayingSequence = UnitPawn.GetAnimTreeController().PlayFullBodyDynamicAnim(Params);
+		if( Track.TrackActor.CustomTimeDilation < 1.0 )
+		{
+			Sleep(PlayingSequence.AnimSeq.SequenceLength * PlayingSequence.Rate * Track.TrackActor.CustomTimeDilation);
+		}
+		else
+		{
+			FinishAnim(PlayingSequence);
+		}
 	}
 
 	Unit.UnitSpeak('LootCaptured');
@@ -203,10 +246,14 @@ event bool BlocksAbilityActivation()
 	return false;
 }
 
+simulated function OnUIInventoryTacticalClosed()
+{
+	bLootingComplete = true;
+}
+
 defaultproperties
 {
 	LootReceptionSocket = "L_Hand"
 	LootSlurpTime = 0.25
 	LootStartTimeSeconds = -1.0
-	LootingSound = AkEvent'SoundTacticalUI.TacticalUI_Looting'
 }

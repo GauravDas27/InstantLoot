@@ -4,7 +4,7 @@
     <ProjectGuid>{869d86ef-f81e-4d5b-bd9d-82f14eb0a00e}</ProjectGuid>
     <Guid>869d86ef-f81e-4d5b-bd9d-82f14eb0a00e</Guid>
     <Name>Instant Loot</Name>
-    <Description>Disable the loot popup window.</Description>
+    <Description>Allows instant pickup of loot drops.</Description>
     <SteamPublishID>0</SteamPublishID>
     <AssemblyName>InstantLoot</AssemblyName>
     <RootNamespace>InstantLoot</RootNamespace>
@@ -16,10 +16,19 @@
     <Folder Include="Src\InstantLoot\Classes\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config\XComInstantLootDefaults.ini">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="ReadMe.txt" />
     <Content Include="ModPreview.jpg" />
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
+    <Content Include="Src\InstantLoot\Classes\Settings.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\InstantLoot\Classes\Settings_Defaults.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\InstantLoot\Classes\X2Action_InstantLoot.uc">
       <SubType>Content</SubType>
     </Content>

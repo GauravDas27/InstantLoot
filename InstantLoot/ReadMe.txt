@@ -1,1 +1,1 @@
-﻿Disable the loot popup window.
+﻿Allows instant pickup of loot drops.
