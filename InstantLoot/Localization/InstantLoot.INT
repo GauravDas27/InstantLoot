@@ -3,8 +3,8 @@ PageTitle=Instant Loot
 GroupDefaultLabel=Options
 
 DisablePopupLabel=Disable popup
-DisablePopupTooltip=Disable the popup windows that appears when picking up loot
+DisablePopupTooltip=Disable the popup window that appears when picking up loot
 DisableSoldierAnimationLabel=Disable soldier animation
-DisableSoldierAnumationTooltip=Disable the soldier loot pickup animation
+DisableSoldierAnimationTooltip=Disable the soldier loot pickup animation
 DisableLootAnimationLabel=Disable loot animation
 DisableLootAnimationTooltip=Disable the loot drops converging to soldier animation
